@@ -96,7 +96,7 @@ class Appr(object):
         utils.set_model_(self.model, best_model)
 
         # Activations mask
-        task = torch.LongTensor([t], device=self.device)
+        task = torch.LongTensor([t]).to(self.device)
         mask = self.model.mask(task, s=self.smax)
         for i in range(len(mask)):
             mask[i] = mask[i].detach().clone()
