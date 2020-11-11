@@ -27,6 +27,8 @@ parser.add_argument('--nepochs', default=200, type=int, required=False,
                     help='(default=%(default)d)')
 parser.add_argument('--lr', default=0.05, type=float, required=False,
                     help='(default=%(default)f)')
+parser.add_argument('--lr-fact', default=1, type=float, required=False,
+                    help='(default=%(default)f)')
 parser.add_argument('--parameter', type=str, default='',
                     help='(default=%(default)s)')
 args = parser.parse_args()
@@ -126,7 +128,7 @@ net.to(device)
 utils.print_model_report(net)
 
 appr = approach.Appr(net, nepochs=args.nepochs, lr=args.lr, args=args,
-                     device=device)
+                     device=device, lr_factor=args.lr_fact)
 print(appr.criterion)
 utils.print_optimizer_config(appr.optimizer)
 print('-' * 100)

@@ -128,10 +128,9 @@ class Appr(object):
                 b = r[i:i + self.sbatch]
             else:
                 b = r[i:]
-            images = torch.autograd.Variable(x[b], volatile=False)
-            targets = torch.autograd.Variable(y[b], volatile=False)
-            task = torch.autograd.Variable(
-                torch.LongTensor([t]).to(self.device), volatile=False)
+            images = x[b]
+            targets = y[b]
+            task = torch.LongTensor([t]).to(self.device)
             s = (self.smax - 1 / self.smax) * i / len(r) + 1 / self.smax
 
             # Forward
