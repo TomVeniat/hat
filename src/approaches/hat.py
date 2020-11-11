@@ -96,12 +96,10 @@ class Appr(object):
         utils.set_model_(self.model, best_model)
 
         # Activations mask
-        task = torch.autograd.Variable(torch.LongTensor([t]).cuda(),
-                                       volatile=False)
+        task = torch.LongTensor([t], device=self.device)
         mask = self.model.mask(task, s=self.smax)
         for i in range(len(mask)):
-            mask[i] = torch.autograd.Variable(mask[i].data.clone(),
-                                              requires_grad=False)
+            mask[i] = mask[i].detach().clone()
         if t == 0:
             self.mask_pre = mask
         else:
