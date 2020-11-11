@@ -27,7 +27,7 @@ parser.add_argument('--nepochs', default=200, type=int, required=False,
                     help='(default=%(default)d)')
 parser.add_argument('--lr', default=0.05, type=float, required=False,
                     help='(default=%(default)f)')
-parser.add_argument('--lr-fact', default=1, type=float, required=False,
+parser.add_argument('--lr-fact', default=3, type=float, required=False,
                     help='(default=%(default)f)')
 parser.add_argument('--parameter', type=str, default='',
                     help='(default=%(default)s)')
@@ -166,7 +166,7 @@ for t, ncla in taskcla:
         xtrain = data[t]['train']['x'].to(device)
         ytrain = data[t]['train']['y'].to(device)
         xvalid = data[t]['valid']['x'].to(device)
-        yvalid = data[t]['valid']['y'].to   (device)
+        yvalid = data[t]['valid']['y'].to(device)
         task = t
 
     # Train

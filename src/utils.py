@@ -53,6 +53,9 @@ def freeze_model(model):
     return
 
 ########################################################################################################################
+def get_conv_out_size(in_size, kernel_size, padding, stride):
+    return [(d + 2*padding - (kernel_size-1) - 1) // stride + 1
+            for d in in_size]
 
 def compute_conv_output_size(Lin,kernel_size,stride=1,padding=0,dilation=1):
     return int(np.floor((Lin+2*padding-dilation*(kernel_size-1)-1)/float(stride)+1))

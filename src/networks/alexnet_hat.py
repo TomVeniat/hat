@@ -14,12 +14,17 @@ class Net(torch.nn.Module):
 
         self.c1=torch.nn.Conv2d(ncha,64,kernel_size=size//8)
         s=utils.compute_conv_output_size(size,size//8)
+        s2=utils.get_conv_out_size(inputsize[1:],size//8, 0, 1)
         s=s//2
         self.c2=torch.nn.Conv2d(64,128,kernel_size=size//10)
+        tmp = s
         s=utils.compute_conv_output_size(s,size//10)
+        s2=utils.get_conv_out_size([tmp,tmp],size//10, 0, 1)
         s=s//2
         self.c3=torch.nn.Conv2d(128,256,kernel_size=2)
+        tmp = s
         s=utils.compute_conv_output_size(s,2)
+        s2=utils.get_conv_out_size([tmp,tmp],2, 0, 1)
         s=s//2
         self.smid=s
         self.maxpool=torch.nn.MaxPool2d(2)
@@ -40,6 +45,7 @@ class Net(torch.nn.Module):
         self.ec3=torch.nn.Embedding(len(self.taskcla),256)
         self.efc1=torch.nn.Embedding(len(self.taskcla),2048)
         self.efc2=torch.nn.Embedding(len(self.taskcla),2048)
+        self.embeddings = [self.ec1, self.ec2, self.ec3, self.efc1, self.efc2]
         """ (e.g., used in the compression experiments)
         lo,hi=0,2
         self.ec1.weight.data.uniform_(lo,hi)
@@ -73,12 +79,17 @@ class Net(torch.nn.Module):
         return y,masks
 
     def mask(self,t,s=1):
+        res = [self.gate(s*e(t)) for e in self.embeddings]
+
         gc1=self.gate(s*self.ec1(t))
         gc2=self.gate(s*self.ec2(t))
         gc3=self.gate(s*self.ec3(t))
         gfc1=self.gate(s*self.efc1(t))
         gfc2=self.gate(s*self.efc2(t))
-        return [gc1,gc2,gc3,gfc1,gfc2]
+        res2= [gc1,gc2,gc3,gfc1,gfc2]
+        eqs = [torch.equal(r1, r2) for r1, r2 in zip(res, res2)]
+        assert all(eqs)
+        return res
 
     def get_view_for(self,n,masks):
         gc1,gc2,gc3,gfc1,gfc2=masks
