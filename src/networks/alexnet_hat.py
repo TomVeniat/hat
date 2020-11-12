@@ -103,7 +103,7 @@ class Net(torch.nn.Module):
         gc1,gc2,gc3,gfc1,gfc2=masks
         if n=='fc1.weight':
             post=gfc1.data.view(-1,1).expand_as(self.fc1.weight)
-            pre=gc3.data.view(-1,1,1).expand((self.ec3.weight.size(1),self.smid,self.smid)).contiguous().view(1,-1).expand_as(self.fc1.weight)
+            pre=gc3.data.view(-1,1,1).expand((self.embeddings['ec3'].weight.size(1),self.smid,self.smid)).contiguous().view(1,-1).expand_as(self.fc1.weight)
             return torch.min(post,pre)
         elif n=='fc1.bias':
             return gfc1.data.view(-1)
