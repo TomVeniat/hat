@@ -40,12 +40,20 @@ class Net(torch.nn.Module):
 
         self.gate=torch.nn.Sigmoid()
         # All embedding stuff should start with 'e'
-        self.ec1=torch.nn.Embedding(len(self.taskcla),64)
-        self.ec2=torch.nn.Embedding(len(self.taskcla),128)
-        self.ec3=torch.nn.Embedding(len(self.taskcla),256)
-        self.efc1=torch.nn.Embedding(len(self.taskcla),2048)
-        self.efc2=torch.nn.Embedding(len(self.taskcla),2048)
-        self.embeddings = [self.ec1, self.ec2, self.ec3, self.efc1, self.efc2]
+        ec1=torch.nn.Embedding(len(self.taskcla),64)
+        ec2=torch.nn.Embedding(len(self.taskcla),128)
+        ec3=torch.nn.Embedding(len(self.taskcla),256)
+        efc1=torch.nn.Embedding(len(self.taskcla),2048)
+        efc2=torch.nn.Embedding(len(self.taskcla),2048)
+        # self.embeddings = torch.nn.ModuleList([ec1, ec2, ec3, efc1, efc2])
+        self.embeddings = torch.nn.ModuleDict(dict(
+            ec1=ec1, ec2=ec2, ec3=ec3, efc1=efc1, efc2=efc2
+        ))
+        # self.ec1 = ec1
+        # self.ec2 = ec2
+        # self.ec3 = ec3
+        # self.efc1 = efc1
+        # self.efc2 = efc2
         """ (e.g., used in the compression experiments)
         lo,hi=0,2
         self.ec1.weight.data.uniform_(lo,hi)
@@ -79,16 +87,16 @@ class Net(torch.nn.Module):
         return y,masks
 
     def mask(self,t,s=1):
-        res = [self.gate(s*e(t)) for e in self.embeddings]
-
-        gc1=self.gate(s*self.ec1(t))
-        gc2=self.gate(s*self.ec2(t))
-        gc3=self.gate(s*self.ec3(t))
-        gfc1=self.gate(s*self.efc1(t))
-        gfc2=self.gate(s*self.efc2(t))
-        res2= [gc1,gc2,gc3,gfc1,gfc2]
-        eqs = [torch.equal(r1, r2) for r1, r2 in zip(res, res2)]
-        assert all(eqs)
+        res = [self.gate(s*e(t)) for e in self.embeddings.values()]
+        #
+        # gc1=self.gate(s*self.ec1(t))
+        # gc2=self.gate(s*self.ec2(t))
+        # gc3=self.gate(s*self.ec3(t))
+        # gfc1=self.gate(s*self.efc1(t))
+        # gfc2=self.gate(s*self.efc2(t))
+        # res2= [gc1,gc2,gc3,gfc1,gfc2]
+        # eqs = [torch.equal(r1, r2) for r1, r2 in zip(res, res2)]
+        # assert all(eqs)
         return res
 
     def get_view_for(self,n,masks):
