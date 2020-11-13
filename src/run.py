@@ -33,7 +33,7 @@ parser.add_argument('--load-from', type=str, default=None,
                     help='(default=%(default)s)')
 parser.add_argument('--parameter', type=str, default='',
                     help='(default=%(default)s)')
-parser.add_argument('--shuffle', type=bool, action='store_true', default=False,)
+parser.add_argument('--shuffle', action='store_true', default=False,)
 args = parser.parse_args()
 if args.output == '':
     args.output = '../res/' + args.experiment + '_' + args.approach + '_' + str(
