@@ -33,6 +33,7 @@ parser.add_argument('--load-from', type=str, default=None,
                     help='(default=%(default)s)')
 parser.add_argument('--parameter', type=str, default='',
                     help='(default=%(default)s)')
+parser.add_argument('--shuffle', type=bool, action='store_true', default=False,)
 args = parser.parse_args()
 if args.output == '':
     args.output = '../res/' + args.experiment + '_' + args.approach + '_' + str(
@@ -122,7 +123,9 @@ else:
 
 # Load
 print('Load data...')
-data, taskcla, inputsize = dataloader.get(seed=args.seed, load_from=args.load_from)
+data, taskcla, inputsize = dataloader.get(seed=args.seed,
+                                          load_from=args.load_from,
+                                          shuffle_cl=args.shuffle)
 print('Input size =', inputsize, '\nTask info =', taskcla)
 
 # Inits

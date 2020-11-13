@@ -5,14 +5,17 @@ import torch
 from sklearn.utils import shuffle
 from torchvision import datasets, transforms
 import torchvision.transforms.functional as F
+from collections import Counter, defaultdict
 
-def get(seed=0, pc_valid=0.10, load_from=None):
+
+def get(seed=0, pc_valid=0.10, load_from=None, shuffle_cl=False):
     data = {}
     taskcla = []
     size = [3, 32, 32]
 
-    if not os.path.isdir('../dat/cifar_classic/'):
-        os.makedirs('../dat/cifar_classic')
+    f = f'../dat/cifar_classic_{load_from}_{shuffle}_{seed}/'
+    if not os.path.isdir(f):
+        os.makedirs(f)
 
         mean = [x / 255 for x in [125.3, 123.0, 113.9]]
         std = [x / 255 for x in [63.0, 62.1, 66.7]]
@@ -61,14 +64,22 @@ def get(seed=0, pc_valid=0.10, load_from=None):
             data[n]['ncla'] = 10
             data[n]['train'] = {'x': [], 'y': []}
             data[n]['test'] = {'x': [], 'y': []}
+        class_to_tasks = np.arange(0, 100) // 10
+        if shuffle_cl:
+            np.random.shuffle(class_to_tasks)
+        labels = []
+        for i in range(10):
+            d = defaultdict(int)
+            d.default_factory = d.__len__
+            labels.append(d)
         for s in ['train', 'test']:
             loader = torch.utils.data.DataLoader(dat[s], batch_size=1,
                                                  shuffle=False)
             for image, target in loader:
                 n = target.numpy()[0]
-                nn = (n // 10)
+                nn = class_to_tasks[n]
                 data[nn][s]['x'].append(image)
-                data[nn][s]['y'].append(n % 10)
+                data[nn][s]['y'].append(labels[nn][n])
 
         # "Unify" and save
         for t in data.keys():
@@ -80,10 +91,10 @@ def get(seed=0, pc_valid=0.10, load_from=None):
                 data[t][s]['y'] = torch.LongTensor(
                     np.array(data[t][s]['y'], dtype=int)).view(-1)
                 torch.save(data[t][s]['x'], os.path.join(
-                    os.path.expanduser('../dat/cifar_classic'),
+                    os.path.expanduser(f),
                     'data' + str(t) + s + 'x.bin'))
                 torch.save(data[t][s]['y'], os.path.join(
-                    os.path.expanduser('../dat/cifar_classic'),
+                    os.path.expanduser(f),
                     'data' + str(t) + s + 'y.bin'))
 
     # Load binary files
@@ -108,10 +119,10 @@ def get(seed=0, pc_valid=0.10, load_from=None):
                 data[i][s]['y'] = y.squeeze(1)
             else:
                 data[i][s]['x'] = torch.load(
-                    os.path.join(os.path.expanduser('../dat/cifar_classic'),
+                    os.path.join(os.path.expanduser(f),
                                  'data' + str(ids[i]) + s + 'x.bin'))
                 data[i][s]['y'] = torch.load(
-                    os.path.join(os.path.expanduser('../dat/cifar_classic'),
+                    os.path.join(os.path.expanduser(f),
                                  'data' + str(ids[i]) + s + 'y.bin'))
             if mean is None:
                 assert s == 'train'
