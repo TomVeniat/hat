@@ -206,6 +206,7 @@ for i in range(acc.shape[0]):
 print('*' * 100)
 print('Done!')
 
+
 print('[Elapsed time = {:.1f} h]'.format((time.time() - tstart) / (60 * 60)))
 
 if hasattr(appr, 'logs'):
@@ -226,5 +227,7 @@ if hasattr(appr, 'logs'):
 
         with gzip.open(os.path.join(appr.logpath), 'wb') as output:
             pickle.dump(appr.logs, output, pickle.HIGHEST_PROTOCOL)
+
+print(np.mean(acc[-1]))
 
 ########################################################################################################################
