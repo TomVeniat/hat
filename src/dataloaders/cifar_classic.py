@@ -13,7 +13,7 @@ def get(seed=0, pc_valid=0.10, load_from=None, shuffle_cl=False):
     taskcla = []
     size = [3, 32, 32]
 
-    f = f'../dat/cifar_classic_{load_from}_{shuffle}_{seed}/'
+    f = f'../dat/cifar_classic_{load_from}_{shuffle_cl}_{seed}/'
     if not os.path.isdir(f):
         os.makedirs(f)
 
