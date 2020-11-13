@@ -29,6 +29,8 @@ parser.add_argument('--lr', default=0.05, type=float, required=False,
                     help='(default=%(default)f)')
 parser.add_argument('--lr-fact', default=1, type=float, required=False,
                     help='(default=%(default)f)')
+parser.add_argument('--load-from', type=str, default=None,
+                    help='(default=%(default)s)')
 parser.add_argument('--parameter', type=str, default='',
                     help='(default=%(default)s)')
 args = parser.parse_args()
@@ -120,7 +122,7 @@ else:
 
 # Load
 print('Load data...')
-data, taskcla, inputsize = dataloader.get(seed=args.seed)
+data, taskcla, inputsize = dataloader.get(seed=args.seed, load_from=args.load_from)
 print('Input size =', inputsize, '\nTask info =', taskcla)
 
 # Inits

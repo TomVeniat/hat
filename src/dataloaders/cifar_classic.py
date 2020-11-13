@@ -6,7 +6,7 @@ from sklearn.utils import shuffle
 from torchvision import datasets, transforms
 import torchvision.transforms.functional as F
 
-def get(seed=0, pc_valid=0.10):
+def get(seed=0, pc_valid=0.10, load_from=None):
     data = {}
     taskcla = []
     size = [3, 32, 32]
@@ -72,30 +72,18 @@ def get(seed=0, pc_valid=0.10):
 
         # "Unify" and save
         for t in data.keys():
-            mean = None
-            std = None
             for s in ['train', 'test']:
                 data[t][s]['x'] = torch.stack(data[t][s]['x']).view(-1,
                                                                     size[0],
                                                                     size[1],
                                                                     size[2])
-                if mean is None:
-                    assert s == 'train'
-                    train_s = data[t][s]['x']
-                    train_s = train_s.view(train_s.shape[0], train_s.shape[1], -1)
-                    mean = train_s.mean(2).mean(0)
-                    std = train_s.std(2).mean(0)
-                # tensor.sub_(mean[:, None, None]).div_(std[:, None, None])
-
-                test = F.normalize(data[t][s]['x'][0], mean, std)
-                data[t][s]['x'] = data[t][s]['x'].sub(mean[None, :, None, None]).div(std[None, :, None, None])
                 data[t][s]['y'] = torch.LongTensor(
                     np.array(data[t][s]['y'], dtype=int)).view(-1)
                 torch.save(data[t][s]['x'], os.path.join(
-                    os.path.expanduser('../dat/binary_cifar'),
+                    os.path.expanduser('../dat/cifar_classic'),
                     'data' + str(t) + s + 'x.bin'))
                 torch.save(data[t][s]['y'], os.path.join(
-                    os.path.expanduser('../dat/binary_cifar'),
+                    os.path.expanduser('../dat/cifar_classic'),
                     'data' + str(t) + s + 'y.bin'))
 
     # Load binary files
@@ -104,14 +92,36 @@ def get(seed=0, pc_valid=0.10):
     print('Task order =', ids)
     for i in range(10):
         data[i] = dict.fromkeys(['name', 'ncla', 'train', 'test'])
-        for s in ['train', 'test']:
+        mean = None
+        std = None
+        splits = ['train', 'test']
+        if load_from:
+            splits.append('val')
+        for s in splits:
             data[i][s] = {'x': [], 'y': []}
-            data[i][s]['x'] = torch.load(
-                os.path.join(os.path.expanduser('../dat/binary_cifar'),
-                             'data' + str(ids[i]) + s + 'x.bin'))
-            data[i][s]['y'] = torch.load(
-                os.path.join(os.path.expanduser('../dat/binary_cifar'),
-                             'data' + str(ids[i]) + s + 'y.bin'))
+            if load_from is not None:
+                p = f'/data/veniat/lileb/datasets/{load_from}'
+                assert os.path.isdir(p)
+                x, y = torch.load(os.path.join(p, f'cifar100-T{i}_{s}.pth'))
+                data[i][s]['x'] = x
+                data[i][s]['y'] = y.squeeze(1)
+            else:
+                data[i][s]['x'] = torch.load(
+                    os.path.join(os.path.expanduser('../dat/cifar_classic'),
+                                 'data' + str(ids[i]) + s + 'x.bin'))
+                data[i][s]['y'] = torch.load(
+                    os.path.join(os.path.expanduser('../dat/cifar_classic'),
+                                 'data' + str(ids[i]) + s + 'y.bin'))
+            if mean is None:
+                assert s == 'train'
+                train_s = data[i][s]['x']
+                train_s = train_s.view(train_s.shape[0], train_s.shape[1], -1)
+                mean = train_s.mean(2).mean(0)
+                std = train_s.std(2).mean(0)
+            # tensor.sub_(mean[:, None, None]).div_(std[:, None, None])
+
+            data[i][s]['x'] = data[i][s]['x'].sub(mean[None, :, None, None]).div(
+                std[None, :, None, None])
         data[i]['ncla'] = len(np.unique(data[i]['train']['y'].numpy()))
         if data[i]['ncla'] == 2:
             data[i]['name'] = 'cifar10-' + str(ids[i])
@@ -119,17 +129,18 @@ def get(seed=0, pc_valid=0.10):
             data[i]['name'] = 'cifar100-' + str(ids[i])
 
     # Validation
-    for t in data.keys():
-        r = np.arange(data[t]['train']['x'].size(0))
-        r = np.array(shuffle(r, random_state=seed), dtype=int)
-        nvalid = int(pc_valid * len(r))
-        ivalid = torch.LongTensor(r[:nvalid])
-        itrain = torch.LongTensor(r[nvalid:])
-        data[t]['valid'] = {}
-        data[t]['valid']['x'] = data[t]['train']['x'][ivalid].clone()
-        data[t]['valid']['y'] = data[t]['train']['y'][ivalid].clone()
-        data[t]['train']['x'] = data[t]['train']['x'][itrain].clone()
-        data[t]['train']['y'] = data[t]['train']['y'][itrain].clone()
+    if load_from is None:
+        for t in data.keys():
+            r = np.arange(data[t]['train']['x'].size(0))
+            r = np.array(shuffle(r, random_state=seed), dtype=int)
+            nvalid = int(pc_valid * len(r))
+            ivalid = torch.LongTensor(r[:nvalid])
+            itrain = torch.LongTensor(r[nvalid:])
+            data[t]['valid'] = {}
+            data[t]['valid']['x'] = data[t]['train']['x'][ivalid].clone()
+            data[t]['valid']['y'] = data[t]['train']['y'][ivalid].clone()
+            data[t]['train']['x'] = data[t]['train']['x'][itrain].clone()
+            data[t]['train']['y'] = data[t]['train']['y'][itrain].clone()
 
     # Others
     n = 0
