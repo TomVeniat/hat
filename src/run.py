@@ -27,7 +27,7 @@ parser.add_argument('--nepochs', default=200, type=int, required=False,
                     help='(default=%(default)d)')
 parser.add_argument('--lr', default=0.05, type=float, required=False,
                     help='(default=%(default)f)')
-parser.add_argument('--lr-fact', default=3, type=float, required=False,
+parser.add_argument('--lr-fact', default=1, type=float, required=False,
                     help='(default=%(default)f)')
 parser.add_argument('--parameter', type=str, default='',
                     help='(default=%(default)s)')

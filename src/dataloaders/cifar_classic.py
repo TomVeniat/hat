@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from sklearn.utils import shuffle
 from torchvision import datasets, transforms
-
+import torchvision.transforms.functional as F
 
 def get(seed=0, pc_valid=0.10):
     data = {}
@@ -47,12 +47,14 @@ def get(seed=0, pc_valid=0.10):
         dat['train'] = datasets.CIFAR100('../dat/', train=True, download=True,
                                          transform=transforms.Compose(
                                              [transforms.ToTensor(),
-                                              transforms.Normalize(mean,
-                                                                   std)]))
+                                              # transforms.Normalize(mean,
+                                              #                      std)
+                                              ]))
         dat['test'] = datasets.CIFAR100('../dat/', train=False, download=True,
                                         transform=transforms.Compose(
                                             [transforms.ToTensor(),
-                                             transforms.Normalize(mean, std)]))
+                                             # transforms.Normalize(mean, std)
+                                             ]))
         for n in range(0, 10):
             data[n] = {}
             data[n]['name'] = 'cifar100'
@@ -70,11 +72,23 @@ def get(seed=0, pc_valid=0.10):
 
         # "Unify" and save
         for t in data.keys():
+            mean = None
+            std = None
             for s in ['train', 'test']:
                 data[t][s]['x'] = torch.stack(data[t][s]['x']).view(-1,
                                                                     size[0],
                                                                     size[1],
                                                                     size[2])
+                if mean is None:
+                    assert s == 'train'
+                    train_s = data[t][s]['x']
+                    train_s = train_s.view(train_s.shape[0], train_s.shape[1], -1)
+                    mean = train_s.mean(2).mean(0)
+                    std = train_s.std(2).mean(0)
+                # tensor.sub_(mean[:, None, None]).div_(std[:, None, None])
+
+                test = F.normalize(data[t][s]['x'][0], mean, std)
+                data[t][s]['x'] = data[t][s]['x'].sub(mean[None, :, None, None]).div(std[None, :, None, None])
                 data[t][s]['y'] = torch.LongTensor(
                     np.array(data[t][s]['y'], dtype=int)).view(-1)
                 torch.save(data[t][s]['x'], os.path.join(
@@ -102,7 +116,7 @@ def get(seed=0, pc_valid=0.10):
         if data[i]['ncla'] == 2:
             data[i]['name'] = 'cifar10-' + str(ids[i])
         else:
-            data[i]['name'] = 'cifar100-' + str(ids[i] - 5)
+            data[i]['name'] = 'cifar100-' + str(ids[i])
 
     # Validation
     for t in data.keys():
