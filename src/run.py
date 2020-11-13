@@ -12,7 +12,7 @@ tstart = time.time()
 parser = argparse.ArgumentParser(description='xxx')
 parser.add_argument('--seed', type=int, default=0,
                     help='(default=%(default)d)')
-parser.add_argument('--experiment', default='cifar', type=str,
+parser.add_argument('--experiment', default='cifar_classic', type=str,
                     choices=['mnist2', 'pmnist', 'cifar', 'mixture'],
                     help='(default=%(default)s)')
 parser.add_argument('--approach', default='hat', type=str,
@@ -59,6 +59,8 @@ if args.experiment == 'mnist2':
     from dataloaders import mnist2 as dataloader
 elif args.experiment == 'pmnist':
     from dataloaders import pmnist as dataloader
+elif args.experiment == 'cifar_classic':
+    from dataloaders import cifar_classic as dataloader
 elif args.experiment == 'cifar':
     from dataloaders import cifar as dataloader
 elif args.experiment == 'mixture':
