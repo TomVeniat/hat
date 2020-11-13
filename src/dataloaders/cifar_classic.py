@@ -96,13 +96,14 @@ def get(seed=0, pc_valid=0.10, load_from=None):
         std = None
         splits = ['train', 'test']
         if load_from:
-            splits.append('val')
+            splits.append('valid')
         for s in splits:
             data[i][s] = {'x': [], 'y': []}
             if load_from is not None:
                 p = f'/data/veniat/lileb/datasets/{load_from}'
                 assert os.path.isdir(p)
-                x, y = torch.load(os.path.join(p, f'cifar100-T{i}_{s}.pth'))
+                s_alias = 'val' if s == 'valid' else s
+                x, y = torch.load(os.path.join(p, f'cifar100-T{i}_{s_alias}.pth'))
                 data[i][s]['x'] = x
                 data[i][s]['y'] = y.squeeze(1)
             else:
